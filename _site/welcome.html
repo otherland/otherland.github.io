@@ -1,42 +1,192 @@
-<!DOCTYPE html>
-<html lang="en-US">
-  <head>
-    <meta charset="UTF-8">
+<!doctype html>
+<!--
+Created using JS Bin
+http://jsbin.com
 
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#157878">
-    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" href="/assets/css/style.css?v=1845e2d826d57c4d3a40bcadbee9a01af9bbc5b6">
-  </head>
-  <body>
-    <section class="page-header">
-      <h1 class="project-name">Tom Yates</h1>
-      <h2 class="project-tagline">This is an awesome description.</h2>
-    </section>
+Copyright (c) 2018 by anonymous (http://jsbin.com/dimezivoci/1/edit)
 
-    <section class="main-content">
-      <p>You’ll find this post in your <code class="highlighter-rouge">_posts</code> directory. Go ahead and edit it and re-build the site to see your changes. You can rebuild the site in many different ways, but the most common way is to run <code class="highlighter-rouge">jekyll serve</code>, which launches a web server and auto-regenerates your site when a file is updated.</p>
+Released under the MIT license: http://jsbin.mit-license.org
+-->
+<meta name="robots" content="noindex">
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width-device-width, initial-scale-1">
+	<script src="http://www.jimsproch.com/react/future/react.js"></script>
+	<script src="http://www.jimsproch.com/react/future/react-dom.js"></script>
+	<script src="http://www.jimsproch.com/react/babel-browser.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.16.2/axios.min.js"></script>
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700" rel="stylesheet">
+  <style type="text/css">
+    body {
+      font-family: 'Open Sans', sans-serif;
+      width: 5000px;
+    }
+    .column {
+      width: 150px;
+      float: left;
+    }
+    .column.lines {
+      width: 10%;
+    }
+    input {
+      font-size: 20px;
+    }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        let j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array
+}
+function lineShuffle(lines){
+  let j = 2
+  let new_arr = []
+  let temp_arr = []
+  for (var i = 0; i < lines.length; i++) {
+    if (j == lines[i][1]) {
+      temp_arr.push(lines[i])
+    }
+    else {
+      new_arr = new_arr.concat(shuffleArray(temp_arr))
+      j = lines[i][1]
+      temp_arr = []
+      temp_arr.push(lines[i])
+    }
+  }
+  return new_arr
+}
+    class TableExp extends React.Component {
+        constructor () {
+            super();
 
-<p>To add new posts, simply add a file in the <code class="highlighter-rouge">_posts</code> directory that follows the convention <code class="highlighter-rouge">YYYY-MM-DD-name-of-post.ext</code> and includes the necessary front matter. Take a look at the source for this post to get an idea about how it works.</p>
+            this.state = {
+            'ml': [], 
+            'rel_rhy': [], 
+            'rel_nry': [], 
+            'rel_jjb': [], 
+            'rel_jja': [], 
+            'lc': [], 
+            'rel_trg': [], 
+            'rel_cns': [], 
+            'rel_ant': [], 
+            'rel_spc': [], 
+            'lines': [], 
+            'query': ''
+            };
+        }
 
-<p>Jekyll also offers powerful support for code snippets:</p>
+        componentDidMount () {
+           
+        }
 
-<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="k">def</span> <span class="nf">print_hi</span><span class="p">(</span><span class="nb">name</span><span class="p">)</span>
-  <span class="nb">puts</span> <span class="s2">"Hi, </span><span class="si">#{</span><span class="nb">name</span><span class="si">}</span><span class="s2">"</span>
-<span class="k">end</span>
-<span class="n">print_hi</span><span class="p">(</span><span class="s1">'Tom'</span><span class="p">)</span>
-<span class="c1">#=&gt; prints 'Hi, Tom' to STDOUT.</span></code></pre></figure>
+handleInputChange = () => {
+    this.setState({
+      query: this.search.value
+    })
+  }
+    _handleRandom = () => {
+      let arr = this.state.lines;
+      shuffleArray(arr);
+      this.setState({ 'lines': arr});
+    }
+    _handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      const params = [
+      'ml', 
+      'rel_rhy', 
+      'rel_nry', 
+      'rel_jjb', 
+      'rel_jja', 
+      'lc', 
+      'rel_trg', 
+      'rel_cns', 
+      'rel_ant',
+      'rel_spc', 
+      ];
+      params.forEach((param) => { 
+            axios.get(`https://api.datamuse.com/words?${param}=${this.state.query}`, {
+            	responseType: 'json'
+            }).then(response => {
+                const words = response.data.map(row => row.word)
+                this.setState({ [param]: words });
+            });
+      });
 
-<p>Check out the <a href="https://jekyllrb.com/docs/home">Jekyll docs</a> for more info on how to get the most out of Jekyll. File all bugs/feature requests at <a href="https://github.com/jekyll/jekyll">Jekyll’s GitHub repo</a>. If you have questions, you can ask them on <a href="https://talk.jekyllrb.com/">Jekyll Talk</a>.</p>
+      axios.get(`https://stark-citadel-44367.herokuapp.com/rhyme/${this.state.query}`, {
+        responseType: 'json'
+      }).then(response => {
+          let lines = lineShuffle(response.data.lines);
+          let words = lines.map(row => `${row[0]} ${row[1]}`);
+          this.setState({ ['lines']: words });
+      });
+  }
+  }
 
+        render () {
 
+            return (<div>
+            <div><input
+          placeholder="Search for..."
+          ref={input => this.search = input}
+          onChange={this.handleInputChange}
+          onKeyPress={this._handleKeyPress}
+        /></div>
+         <div className='column lines'>
+            <h3>Lines</h3>
+            <button onClick={this._handleRandom}>Random</button>
+            {this.state.lines.map((word, i) => <div key={i}>{word}</div>)}
+         </div>
+        <div className='column'>
+            <h3>Meaning</h3>
+            {this.state.ml.map((word, i) => <div key={i}>{word}</div>)}
+        </div>
+        <div className='column'>
+           <h3>Trigger</h3>
+           {this.state.rel_trg.map((word, i) => <div key={i}>{word}</div>)}
+        </div>
+        <div className='column'>
+            <h3>Rhyme</h3>
+            {this.state.rel_rhy.map((word, i) => <div key={i}>{word}</div>)}
+         </div>
+        <div className='column'>
+            <h3>Near rhyme</h3>
+            {this.state.rel_nry.map((word, i) => <div key={i}>{word}</div>)}
+         </div>
+        <div className='column'>
+            <h3>Consonant</h3>
+            {this.state.rel_cns.map((word, i) => <div key={i}>{word}</div>)}
+         </div>
+        <div className='column'>
+            <h3>Opposite</h3>
+            {this.state.rel_ant.map((word, i) => <div key={i}>{word}</div>)}
+         </div>
+         <div className='column'>
+            <h3>Adjective</h3>
+            {this.state.rel_jjb.map((word, i) => <div key={i}>{word}</div>)}
+         </div>
+         <div className='column'>
+            <h3>Noun</h3>
+            {this.state.rel_jja.map((word, i) => <div key={i}>{word}</div>)}
+         </div>
+         <div className='column'>
+            <h3>Followed by</h3>
+            {this.state.lc.map((word, i) => <div key={i}>{word}</div>)}
+         </div>
+         <div className='column'>
+            <h3>Kind of</h3>
+            {this.state.rel_spc.map((word, i) => <div key={i}>{word}</div>)}
+         </div>
+  </div>);
+        }
+    };
 
-      <footer class="site-footer">
-          <span class="site-footer-owner">This site is maintained by me.</span>
-        <span class="site-footer-credits">These are the credits</a>.</span>
-      </footer>
-    </section>
-
-    
-  </body>
+    ReactDOM.render(<div><TableExp/></div>, document.getElementById("root"));
+</script>
+</body>
 </html>
